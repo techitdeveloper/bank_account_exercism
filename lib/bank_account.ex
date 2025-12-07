@@ -31,7 +31,7 @@ defmodule BankAccount do
   """
   @spec balance(account) :: integer | {:error, :account_closed}
   def balance(account) do
-    case is_account_active?(account) do
+    case account_active?(account) do
       :ok -> Agent.get(account, fn state -> state end)
       {:error, error} -> {:error, error}
     end
@@ -44,7 +44,7 @@ defmodule BankAccount do
   @spec deposit(account, integer) :: :ok | {:error, :account_closed | :amount_must_be_positive}
   def deposit(_account, amount) when amount < 0, do: {:error, :amount_must_be_positive}
   def deposit(account, amount) do
-    case is_account_active?(account) do
+    case account_active?(account) do
       :ok -> Agent.update(account, fn state -> state + amount end)
       {:error, error} -> {:error, error}
     end
@@ -66,7 +66,7 @@ defmodule BankAccount do
 
   end
 
-  defp is_account_active?(account) do
+  defp account_active?(account) do
     if Process.alive?(account) do
       :ok
     else
@@ -75,7 +75,7 @@ defmodule BankAccount do
   end
 
   defp can_withdraw?(account, amount) do
-    case is_account_active?(account) do
+    case account_active?(account) do
       :ok -> balance(account) >= amount
       {:error, error} -> {:error, error}
     end
